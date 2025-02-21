@@ -31,6 +31,7 @@ namespace QlNhanSu_Backend.DTO
 		public int IdNhanVien { get; set; }
 
 		public int? IdQuanLy { get; set; }
+		public bool HopLe { get; set; }
 
 		public CaLam IdCaLamNavigation { get; set; }
 		public string TenQL { get; set; }

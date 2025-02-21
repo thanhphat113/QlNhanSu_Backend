@@ -17,7 +17,6 @@ public partial class CaLam
     public TimeOnly ThoiGianKetThuc { get; set; }
 
     public double ThoiGianSomChoPhep { get; set; }
-
     [JsonIgnore]
     public virtual ICollection<DiemDanh> DiemDanhs { get; set; } = new List<DiemDanh>();
 }

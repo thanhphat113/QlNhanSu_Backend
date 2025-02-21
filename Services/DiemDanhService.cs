@@ -36,7 +36,7 @@ namespace QlNhanSu_Backend.Services
 			var DateTimeNow = DateTime.Now;
 
 			var time = DateTimeNow.TimeOfDay;
-			var diff = calam.ThoiGianBatDau - TimeOnly.FromTimeSpan(time);
+			var diff = calam.ThoiGianBatDau.ToTimeSpan() - time;
 			if (diff.TotalMinutes > 15)
 			{
 				return new
@@ -52,13 +52,18 @@ namespace QlNhanSu_Backend.Services
 			{
 				checkIn.ThoiGianBatDau = calam.ThoiGianBatDau;
 				checkIn.DanhGia = "Check-in đúng giờ";
+				checkIn.HopLe = true;
+
 			}
 			else if (sumTime > calam.ThoiGianTreChoPhep)
 			{
 				checkIn.DanhGia = "Check-in trễ";
 				checkIn.ThoiGianBatDau = TimeOnly.FromTimeSpan(time);
 				checkIn.VaoTre = Math.Round(sumTime - calam.ThoiGianTreChoPhep);
+				checkIn.HopLe = false;
+
 			}
+
 
 			try
 			{
@@ -128,6 +133,20 @@ namespace QlNhanSu_Backend.Services
 					}
 				};
 			}
+
+			var diff = time - diemdanh.ThoiGianBatDau.ToTimeSpan();
+			if (diff.TotalMinutes < 60)
+			{
+				return new
+				{
+					statusCode = 400,
+					data = new
+					{
+						message = "Chưa thể thực hiện Check-out vì bạn chưa làm đủ tối thiếu 1h/ca",
+					}
+				};
+			}
+
 			diemdanh.GhiChu = ghichu;
 			TimeSpan difference = DateTime.Now.Add(diemdanh.IdCaLamNavigation.ThoiGianKetThuc.ToTimeSpan()) - timeKT;
 			var sumTime = difference.TotalMinutes;
@@ -136,12 +155,14 @@ namespace QlNhanSu_Backend.Services
 			{
 				diemdanh.ThoiGianKetThuc = diemdanh.IdCaLamNavigation.ThoiGianKetThuc;
 				diemdanh.DanhGia = diemdanh.DanhGia + " - " + "Check-out đúng giờ";
+				if (!diemdanh.HopLe) diemdanh.HopLe = true;
 			}
 			else if (sumTime > diemdanh.IdCaLamNavigation.ThoiGianSomChoPhep)
 			{
 				diemdanh.ThoiGianKetThuc = TimeOnly.FromTimeSpan(time);
 				diemdanh.DanhGia = diemdanh.DanhGia + " - " + "Check-out sớm";
 				diemdanh.VeSom = Math.Round(sumTime - diemdanh.IdCaLamNavigation.ThoiGianSomChoPhep, 2);
+				if (diemdanh.HopLe) diemdanh.HopLe = false;
 			}
 
 			try

@@ -29,6 +29,8 @@ public partial class DiemDanh
 
     public int? IdQuanLy { get; set; }
 
+    public bool HopLe { get; set; }
+
     public virtual CaLam IdCaLamNavigation { get; set; } = null!;
 
     public virtual NhanVien IdNhanVienNavigation { get; set; } = null!;
