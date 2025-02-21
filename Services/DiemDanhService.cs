@@ -31,23 +31,32 @@ namespace QlNhanSu_Backend.Services
 
 		public async Task<dynamic> CheckIn(ThemDiemDanh values)
 		{
+			var calam = await _context.CaLams.FindAsync(values.IdCaLam);
 			var checkIn = _mapper.Map<DiemDanh>(values);
 			var DateTimeNow = DateTime.Now;
 
 			var time = DateTimeNow.TimeOfDay;
-
-			checkIn.ThoiGianBatDau = TimeOnly.FromTimeSpan(time);
-			var calam = await _context.CaLams.FindAsync(values.IdCaLam);
+			var diff = calam.ThoiGianBatDau - TimeOnly.FromTimeSpan(time);
+			if (diff.TotalMinutes > 15)
+			{
+				return new
+				{
+					statusCode = 400,
+					data = new { message = "Chỉ có thể Check-In sớm tối đa 15 phút" }
+				};
+			}
 
 			TimeSpan difference = DateTimeNow - DateTime.Today.Add(calam.ThoiGianBatDau.ToTimeSpan());
 			var sumTime = difference.TotalMinutes;
 			if (sumTime < 0)
 			{
+				checkIn.ThoiGianBatDau = calam.ThoiGianBatDau;
 				checkIn.DanhGia = "Check-in đúng giờ";
 			}
 			else if (sumTime > calam.ThoiGianTreChoPhep)
 			{
 				checkIn.DanhGia = "Check-in trễ";
+				checkIn.ThoiGianBatDau = TimeOnly.FromTimeSpan(time);
 				checkIn.VaoTre = Math.Round(sumTime - calam.ThoiGianTreChoPhep);
 			}
 
@@ -79,7 +88,7 @@ namespace QlNhanSu_Backend.Services
 				return new
 				{
 					statusCode = 400,
-					data = new { messge = "Thực hiện điểm danh thất bại" }
+					data = new { message = "Thực hiện điểm danh thất bại" }
 				};
 			}
 			catch (System.Exception ex)
@@ -107,17 +116,30 @@ namespace QlNhanSu_Backend.Services
 
 			var timeKT = DateTime.Now;
 			var time = timeKT.TimeOfDay;
-			diemdanh.ThoiGianKetThuc = TimeOnly.FromTimeSpan(time);
+
+			if (TimeOnly.FromTimeSpan(time) < diemdanh.IdCaLamNavigation.ThoiGianBatDau)
+			{
+				return new
+				{
+					statusCode = 400,
+					data = new
+					{
+						message = "Chưa thể thực hiện Check-out vì chưa vào thời gian bắt đầu ca",
+					}
+				};
+			}
 			diemdanh.GhiChu = ghichu;
 			TimeSpan difference = DateTime.Now.Add(diemdanh.IdCaLamNavigation.ThoiGianKetThuc.ToTimeSpan()) - timeKT;
 			var sumTime = difference.TotalMinutes;
 
 			if (sumTime < 0)
 			{
+				diemdanh.ThoiGianKetThuc = diemdanh.IdCaLamNavigation.ThoiGianKetThuc;
 				diemdanh.DanhGia = diemdanh.DanhGia + " - " + "Check-out đúng giờ";
 			}
 			else if (sumTime > diemdanh.IdCaLamNavigation.ThoiGianSomChoPhep)
 			{
+				diemdanh.ThoiGianKetThuc = TimeOnly.FromTimeSpan(time);
 				diemdanh.DanhGia = diemdanh.DanhGia + " - " + "Check-out sớm";
 				diemdanh.VeSom = Math.Round(sumTime - diemdanh.IdCaLamNavigation.ThoiGianSomChoPhep, 2);
 			}

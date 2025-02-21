@@ -52,6 +52,18 @@
               "target": "Package",
               "version": "[2.1.66, )"
             },
+            "Hangfire": {
+              "target": "Package",
+              "version": "[1.8.18, )"
+            },
+            "Hangfire.AspNetCore": {
+              "target": "Package",
+              "version": "[1.8.18, )"
+            },
+            "Hangfire.InMemory": {
+              "target": "Package",
+              "version": "[1.0.0, )"
+            },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
               "version": "[9.0.1, )"
