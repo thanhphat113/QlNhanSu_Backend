@@ -26,6 +26,7 @@ namespace QlNhanSu_Backend.Services
 			{
 				item.ThoiGianKetThuc = TimeOnly.MaxValue;
 				item.DanhGia = item.DanhGia + " - " + "Quên check-out";
+				item.HopLe = false;
 			}
 
 			await _context.SaveChangesAsync();

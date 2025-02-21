@@ -40,11 +40,12 @@ namespace QlNhanSu_Backend.Services
 			var passwordHasher = new PasswordHasher<string>();
 
 
-			var account = await _context.TaiKhoanDangNhaps.FindAsync(values.IdNhanVien);
+			var account = await _context.NhanViens
+				.Where(a => a.IdNhanVien == values.IdNhanVien)
+				.Include(u => u.TaiKhoanDangNhap).FirstOrDefaultAsync();
 			// return account;
 
-
-			var verify = passwordHasher.VerifyHashedPassword(null, account.Password, values.OldPassword);
+			var verify = passwordHasher.VerifyHashedPassword(null, account.TaiKhoanDangNhap.Password, values.OldPassword);
 
 			if (verify == PasswordVerificationResult.Failed) return new
 			{
@@ -57,7 +58,7 @@ namespace QlNhanSu_Backend.Services
 
 			string hashedNewPassword = passwordHasher.HashPassword(null, values.NewPassword);
 
-			account.Password = hashedNewPassword;
+			account.TaiKhoanDangNhap.Password = hashedNewPassword;
 
 			try
 			{

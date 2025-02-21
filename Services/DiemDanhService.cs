@@ -155,14 +155,13 @@ namespace QlNhanSu_Backend.Services
 			{
 				diemdanh.ThoiGianKetThuc = diemdanh.IdCaLamNavigation.ThoiGianKetThuc;
 				diemdanh.DanhGia = diemdanh.DanhGia + " - " + "Check-out đúng giờ";
-				if (!diemdanh.HopLe) diemdanh.HopLe = true;
 			}
 			else if (sumTime > diemdanh.IdCaLamNavigation.ThoiGianSomChoPhep)
 			{
 				diemdanh.ThoiGianKetThuc = TimeOnly.FromTimeSpan(time);
 				diemdanh.DanhGia = diemdanh.DanhGia + " - " + "Check-out sớm";
 				diemdanh.VeSom = Math.Round(sumTime - diemdanh.IdCaLamNavigation.ThoiGianSomChoPhep, 2);
-				if (diemdanh.HopLe) diemdanh.HopLe = false;
+				diemdanh.HopLe = false;
 			}
 
 			try
@@ -353,27 +352,35 @@ namespace QlNhanSu_Backend.Services
 					await _context.LichSuDiemDanhs.AddAsync(newLS);
 					DateTime today = DateTime.Today;
 
+					var CaLam = diemdanh.IdCaLamNavigation;
 
-					diemdanh.ThoiGianBatDau = update.ThoiGianBatDau;
-					diemdanh.ThoiGianKetThuc = update.ThoiGianKetThuc;
+					diemdanh.ThoiGianBatDau = update.ThoiGianBatDau < CaLam.ThoiGianBatDau ? CaLam.ThoiGianBatDau : update.ThoiGianBatDau;
+					diemdanh.ThoiGianKetThuc = update.ThoiGianKetThuc > CaLam.ThoiGianKetThuc ? CaLam.ThoiGianKetThuc : update.ThoiGianKetThuc;
 					diemdanh.GhiChu = update.GhiChu;
 					diemdanh.IdQuanLy = IdNhanVien;
 
-					var CaLam = diemdanh.IdCaLamNavigation;
-
 					TimeSpan differenceBD = today.Add(update.ThoiGianBatDau.ToTimeSpan()) - today.Add(CaLam.ThoiGianBatDau.Add(TimeSpan.FromMinutes(CaLam.ThoiGianTreChoPhep)).ToTimeSpan());
+					Console.WriteLine("Đây là: " + differenceBD);
 					TimeSpan timeToSubtract = TimeSpan.FromMinutes(CaLam.ThoiGianSomChoPhep);
 
 					TimeSpan differenceKT = today.Add(CaLam.ThoiGianKetThuc.ToTimeSpan()) - today.Add(update.ThoiGianKetThuc.ToTimeSpan());
-					Console.WriteLine("Kết thúc: " + today.Add(CaLam.ThoiGianKetThuc.ToTimeSpan()) + " " + today.Add(update.ThoiGianKetThuc.ToTimeSpan()) + " " + differenceKT);
+
 					TimeSpan subtract = differenceKT - timeToSubtract;
 					var sumTimeBd = differenceBD.TotalMinutes;
 					var sumTimeKt = subtract.TotalMinutes;
 
+					if (sumTimeBd > 0 || sumTimeKt > 0)
+					{
+						diemdanh.HopLe = false;
+					}
+					else
+					{
+						diemdanh.HopLe = true;
+					}
 
 					diemdanh.VaoTre = Math.Round(sumTimeBd < 0 ? 0.0 : sumTimeBd, 2);
 					diemdanh.VeSom = Math.Round(sumTimeKt < 0 ? 0.0 : sumTimeKt, 2);
-					diemdanh.DanhGia = $"Check-In {(sumTimeBd < 0 ? "đúng giờ" : "trễ giờ")} - Check-Out {(sumTimeKt > 0 ? "sớm" : "đúng giờ")}";
+					diemdanh.DanhGia = $"Check-In {(sumTimeBd <= 0 ? "đúng giờ" : "trễ giờ")} - Check-Out {(sumTimeKt >= 0 ? "sớm" : "đúng giờ")}";
 
 					diemdanh.ThoiGianCapNhat = DateTime.UtcNow;
 
