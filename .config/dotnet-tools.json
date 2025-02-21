@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "autogenerationmodels": {
+      "version": "2.1.1",
+      "commands": [
+        "AutoGenerationModels"
+      ],
+      "rollForward": false
+    }
+  }
+}
